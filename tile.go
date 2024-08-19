@@ -61,7 +61,7 @@ func getDataForTile(req *http.Request, opts *TileHandlerOptions, t *maptile.Tile
 	q := fmt.Sprintf(`SELECT "wof:id","wof:name", ST_GeomFromWkb(geometry) AS geometry FROM read_parquet("%s") WHERE ST_Intersects(ST_GeomFromWkb(geometry), ST_GeomFromHEXWKB(?))`, opts.Datasource)
 
 	slog.Info(q)
-	
+
 	rows, err := opts.Database.QueryContext(ctx, q, string(enc_poly))
 
 	if err != nil {
@@ -73,7 +73,7 @@ func getDataForTile(req *http.Request, opts *TileHandlerOptions, t *maptile.Tile
 
 	for rows.Next() {
 
-		var id int64
+		var id float64
 		var name string
 		var geometry string
 

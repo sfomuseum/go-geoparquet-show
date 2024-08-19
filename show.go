@@ -15,7 +15,7 @@ import (
 	_ "strings"
 	"time"
 
-	"github.com/sfomuseum/go-geoparquet-show/static/www"	
+	"github.com/sfomuseum/go-geoparquet-show/static/www"
 )
 
 func Run(ctx context.Context) error {
@@ -50,8 +50,8 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 		}
 	}
 
-	mux := http.NewServeMux()	
-	
+	mux := http.NewServeMux()
+
 	tile_opts := &TileHandlerOptions{
 		Database:   opts.Database,
 		Datasource: opts.Datasource,
@@ -68,10 +68,10 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 	// START OF merge with go-geojson-show and put in a package or something
 
 	// funcName(ctx, port, FS, url)
-	
+
 	www_fs := http.FS(www.FS)
 	mux.Handle("/", http.FileServer(www_fs))
-	
+
 	port := opts.Port
 
 	if port == 0 {
