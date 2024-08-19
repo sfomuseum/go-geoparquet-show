@@ -30,6 +30,7 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 	opts := &RunOptions{
 		Database:   db,
 		Datasource: data_source,
+		Port: port,
 	}
 
 	return opts, nil

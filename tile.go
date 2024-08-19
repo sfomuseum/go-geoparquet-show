@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/paulmach/orb/encoding/wkt"
+	"github.com/paulmach/orb/encoding/wkb"
 	"github.com/paulmach/orb/maptile"
 )
 
@@ -26,6 +26,7 @@ func NewTileHandler(opts *TileHandlerOptions) (http.Handler, error) {
 		t, err := getTileForRequest(req)
 
 		if err != nil {
+			slog.Error("Failed to get tile for request", "error", err)
 			http.Error(rsp, "Internal server error", http.StatusInternalServerError)
 			return
 		}
@@ -33,6 +34,7 @@ func NewTileHandler(opts *TileHandlerOptions) (http.Handler, error) {
 		d, err := getDataForTile(req, opts, t)
 
 		if err != nil {
+			slog.Error("Failed to get data for tile", "error", err)
 			http.Error(rsp, "Internal server error", http.StatusInternalServerError)
 			return
 		}
@@ -50,13 +52,20 @@ func getDataForTile(req *http.Request, opts *TileHandlerOptions, t *maptile.Tile
 	bound := t.Bound()
 	poly := bound.ToPolygon()
 
-	enc_poly := wkt.Marshal(poly)
-
-	q := fmt.Sprintf(`SELECT "wof:id","wof:name", ST_GeomFromWkb(geometry) AS geometry FROM read_parquet("%s") WHERE ST_Intersects(geometry, ST_GeomFromText(?))`, opts.Datasource)
-
-	rows, err := opts.Database.QueryContext(ctx, q, enc_poly)
+	enc_poly, err := wkb.MarshalToHex(poly, wkb.DefaultByteOrder)
 
 	if err != nil {
+		return nil, err
+	}
+
+	q := fmt.Sprintf(`SELECT "wof:id","wof:name", ST_GeomFromWkb(geometry) AS geometry FROM read_parquet("%s") WHERE ST_Intersects(geometry, ST_GeomFromHEXWKB(?))`, opts.Datasource)
+
+	slog.Info(q)
+	
+	rows, err := opts.Database.QueryContext(ctx, q, string(enc_poly))
+
+	if err != nil {
+		slog.Error("Failed to query database", "error", err, "query", q, "geom", enc_poly)
 		return nil, fmt.Errorf("Failed to query database, %w", err)
 	}
 
@@ -71,6 +80,7 @@ func getDataForTile(req *http.Request, opts *TileHandlerOptions, t *maptile.Tile
 		err := rows.Scan(&id, &name, &geometry)
 
 		if err != nil {
+			slog.Error("Failed to scan row", "error", err)
 			return nil, fmt.Errorf("Failed to scan row, %w", err)
 		}
 
