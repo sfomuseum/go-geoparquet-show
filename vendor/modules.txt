@@ -1,3 +1,6 @@
+# github.com/aaronland/go-roster v1.0.0
+## explicit; go 1.16
+github.com/aaronland/go-roster
 # github.com/apache/arrow/go/v17 v17.0.0
 ## explicit; go 1.21
 github.com/apache/arrow/go/v17/arrow
@@ -33,6 +36,9 @@ github.com/goccy/go-json/internal/encoder/vm_color_indent
 github.com/goccy/go-json/internal/encoder/vm_indent
 github.com/goccy/go-json/internal/errors
 github.com/goccy/go-json/internal/runtime
+# github.com/gogo/protobuf v1.3.2
+## explicit; go 1.15
+github.com/gogo/protobuf/proto
 # github.com/google/flatbuffers v24.3.25+incompatible
 ## explicit
 github.com/google/flatbuffers/go
@@ -57,10 +63,22 @@ github.com/mitchellh/mapstructure
 # github.com/paulmach/orb v0.11.1
 ## explicit; go 1.15
 github.com/paulmach/orb
+github.com/paulmach/orb/clip
+github.com/paulmach/orb/encoding/internal/wkbcommon
+github.com/paulmach/orb/encoding/mvt
+github.com/paulmach/orb/encoding/mvt/vectortile
+github.com/paulmach/orb/encoding/wkb
 github.com/paulmach/orb/encoding/wkt
 github.com/paulmach/orb/geojson
+github.com/paulmach/orb/internal/length
 github.com/paulmach/orb/internal/mercator
 github.com/paulmach/orb/maptile
+github.com/paulmach/orb/planar
+github.com/paulmach/orb/project
+github.com/paulmach/orb/simplify
+# github.com/paulmach/protoscan v0.2.1
+## explicit; go 1.15
+github.com/paulmach/protoscan
 # github.com/pierrec/lz4/v4 v4.1.21
 ## explicit; go 1.14
 github.com/pierrec/lz4/v4
@@ -68,9 +86,18 @@ github.com/pierrec/lz4/v4/internal/lz4block
 github.com/pierrec/lz4/v4/internal/lz4errors
 github.com/pierrec/lz4/v4/internal/lz4stream
 github.com/pierrec/lz4/v4/internal/xxh32
+# github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
+## explicit; go 1.14
+github.com/pkg/browser
 # github.com/sfomuseum/go-flags v0.10.0
 ## explicit; go 1.16
 github.com/sfomuseum/go-flags/flagset
+# github.com/sfomuseum/go-http-mvt v0.0.0-20240820173207-23e011ed0af8
+## explicit; go 1.23.0
+github.com/sfomuseum/go-http-mvt
+# github.com/sfomuseum/go-www-show v0.0.0-20240820174228-9955e1f57009
+## explicit; go 1.23.0
+github.com/sfomuseum/go-www-show
 # github.com/zeebo/xxh3 v1.0.2
 ## explicit; go 1.17
 github.com/zeebo/xxh3
@@ -98,6 +125,7 @@ golang.org/x/sync/errgroup
 ## explicit; go 1.18
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
+golang.org/x/sys/windows
 # golang.org/x/tools v0.22.0
 ## explicit; go 1.19
 golang.org/x/tools/cmd/goimports
