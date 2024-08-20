@@ -9,8 +9,10 @@ import (
 func TestOrbMultiPoints(t *testing.T) {
 
 	tests := []string{
+		// These are tests that wkt.Unmarshal should be happy with
 		"MULTIPOINT((-122.3931 37.618206))",
 		"MULTIPOINT((-122.3931 37.618206), (-122.388749 37.620113))",
+		// These are tests that will make wkt.Unmarshal sad without intervention (fixMultiPoint)
 		"MULTIPOINT (-122.388749 37.620113)",
 	}
 

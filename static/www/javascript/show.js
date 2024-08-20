@@ -12,7 +12,7 @@ window.addEventListener("load", function load(event){
     lat = 37.621131;
     lon = -122.384292;
 
-    var zm = 12;
+    var zm = 6;
     
     var map = L.map('map').setView([lat, lon], zm);
 
