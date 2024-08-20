@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/paulmach/orb/encoding/wkb"
@@ -15,6 +17,22 @@ import (
 	"github.com/paulmach/orb/maptile"
 	"github.com/sfomuseum/go-http-mvt"
 )
+
+// START OF The DuckDB spatial extension returns WKT-formatted MultiPoint strings
+//  without enclosing bracketsfor individual points which makes Orb sad. See also:
+// https://libgeos.org/specifications/wkt/
+
+var re_wkt_point = regexp.MustCompile(`\-?\d+(?:\.\d+)? \-?\d+(?:\.\d+)?`)
+
+func fixMultiPoint(wkt_geom string) string {
+	return re_wkt_point.ReplaceAllStringFunc(wkt_geom, replaceMultiPoint)
+}
+
+func replaceMultiPoint(s string) string {
+	return fmt.Sprintf("(%s)", s)
+}
+
+// END OF The DuckDB spatial extension returns WKT-formatted MultiPoint strings
 
 func GetFeaturesForTileFunc(db *sql.DB, datasource string) mvt.GetFeaturesCallbackFunc {
 
@@ -81,19 +99,19 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string) mvt.GetFeaturesCallba
 				return nil, fmt.Errorf("Failed to scan row, %w", err)
 			}
 
-			/*
-				if strings.HasPrefix(wkt_geom, "MULTIPOINT ("){
-					wkt_geom = strings.Replace(wkt_geom, "MULTIPOINT (", "MULTIPOINT(", 1)
-				}
-			*/
+			// See notes above
+			if strings.HasPrefix(wkt_geom, "MULTIPOINT (") {
+				wkt_geom = fixMultiPoint(wkt_geom)
+			}
+
+			// To do:
+			// GEOMETRYCOLLECTION (
 
 			orb_geom, err := wkt.Unmarshal(wkt_geom)
 
 			if err != nil {
 				logger.Error("Failed to unmarshal geometry", "id", id, "geom", wkt_geom, "error", err)
 				continue
-
-				// return nil, fmt.Errorf("Failed to unmarshal geometry, %w", err)
 			}
 
 			f := geojson.NewFeature(orb_geom)
@@ -107,8 +125,7 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string) mvt.GetFeaturesCallba
 		err = rows.Err()
 
 		if err != nil {
-			// return nil fmt.Errorf("There was a problem scanning rows, %w", err)
-			return nil, err
+			return nil, fmt.Errorf("There was a problem scanning rows, %w", err)
 		}
 
 		collections := map[string]*geojson.FeatureCollection{
