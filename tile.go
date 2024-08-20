@@ -52,7 +52,7 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 	for _, c := range table_cols {
 		switch c {
 		case "geometry":
-			// Note: We are treatin the geometry columns as a special case
+			// Note: We are treating the geometry column as a special case
 			// in the SQL query below.
 		default:
 			quoted_cols = append(quoted_cols, fmt.Sprintf(`"%s"`, c))
@@ -64,6 +64,7 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 	// so that it is included in the pointers/values.
 	pointer_cols = append(pointer_cols, "geometry")
 
+	// Generate a CSV string of quoted_cols for use with SQL queries below.
 	str_cols := strings.Join(quoted_cols, ",")
 
 	fn := func(req *http.Request, layer string, t *maptile.Tile) (map[string]*geojson.FeatureCollection, error) {
@@ -86,7 +87,7 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 		enc_poly, err := wkb.MarshalToHex(poly, wkb.DefaultByteOrder)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to marshal tile boundary to WKBHEX, %w", err)
 		}
 
 		// Note: Do not change the order of columns here (geometry at the end) without adjusting
