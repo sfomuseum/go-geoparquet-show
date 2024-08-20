@@ -7,9 +7,14 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"time"
 
+	"github.com/paulmach/orb/encoding/mvt"
 	"github.com/paulmach/orb/encoding/wkb"
+	"github.com/paulmach/orb/encoding/wkt"
+	"github.com/paulmach/orb/geojson"
 	"github.com/paulmach/orb/maptile"
+	"github.com/paulmach/orb/simplify"
 )
 
 var re_path = regexp.MustCompile(`/(.*)/(\d+)/(\d+)/(\d+).(\w+)$`)
@@ -23,29 +28,62 @@ func NewTileHandler(opts *TileHandlerOptions) (http.Handler, error) {
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
-		t, err := getTileForRequest(req)
+		logger := slog.Default()
+		logger = logger.With("path", req.URL.Path)
+
+		t1 := time.Now()
+
+		defer func() {
+			logger.Info("Time to process tile", "time", time.Since(t1))
+		}()
+
+		layer, t, err := getTileForRequest(req)
 
 		if err != nil {
-			slog.Error("Failed to get tile for request", "error", err)
+			logger.Error("Failed to get tile for request", "error", err)
 			http.Error(rsp, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
-		d, err := getDataForTile(req, opts, t)
+		logger = logger.With("layer", layer)
+
+		fc, err := getFeaturesForTile(req, opts, t)
 
 		if err != nil {
-			slog.Error("Failed to get data for tile", "error", err)
+			logger.Error("Failed to get data for tile", "error", err)
 			http.Error(rsp, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
-		slog.Info("DATA", "data", d)
+		collections := map[string]*geojson.FeatureCollection{
+			"debug": fc,
+		}
+
+		layers := mvt.NewLayers(collections)
+		layers.ProjectToTile(*t)
+
+		layers.Clip(mvt.MapboxGLDefaultExtentBound)
+
+		layers.Simplify(simplify.DouglasPeucker(1.0))
+		layers.RemoveEmpty(1.0, 1.0)
+
+		data, err := mvt.Marshal(layers)
+
+		if err != nil {
+			logger.Error("Failed to marshal layers", "error", err)
+			http.Error(rsp, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		rsp.Header().Set("Content-Type", "application/vnd.mapbox-vector-tile")
+		rsp.Write(data)
+		return
 	}
 
 	return http.HandlerFunc(fn), nil
 }
 
-func getDataForTile(req *http.Request, opts *TileHandlerOptions, t *maptile.Tile) (any, error) {
+func getFeaturesForTile(req *http.Request, opts *TileHandlerOptions, t *maptile.Tile) (*geojson.FeatureCollection, error) {
 
 	ctx := req.Context()
 
@@ -58,7 +96,14 @@ func getDataForTile(req *http.Request, opts *TileHandlerOptions, t *maptile.Tile
 		return nil, err
 	}
 
-	q := fmt.Sprintf(`SELECT "wof:id","wof:name", ST_GeomFromWkb(geometry) AS geometry FROM read_parquet("%s") WHERE ST_Intersects(ST_GeomFromWkb(geometry), ST_GeomFromHEXWKB(?))`, opts.Datasource)
+	q := fmt.Sprintf(`SELECT
+				"wof:id","wof:name",
+				ST_AsText(ST_GeomFromWkb(geometry)) AS geometry
+			  FROM
+				read_parquet("%s")
+			  WHERE
+				ST_Intersects(ST_GeomFromWkb(geometry), ST_GeomFromHEXWKB(?))`,
+		opts.Datasource)
 
 	slog.Info(q)
 
@@ -71,20 +116,34 @@ func getDataForTile(req *http.Request, opts *TileHandlerOptions, t *maptile.Tile
 
 	defer rows.Close()
 
+	fc := geojson.NewFeatureCollection()
+
 	for rows.Next() {
 
 		var id float64
 		var name string
-		var geometry string
+		var wkt_geom string
 
-		err := rows.Scan(&id, &name, &geometry)
+		err := rows.Scan(&id, &name, &wkt_geom)
 
 		if err != nil {
 			slog.Error("Failed to scan row", "error", err)
 			return nil, fmt.Errorf("Failed to scan row, %w", err)
 		}
 
-		slog.Info("ROW", "id", id, "name", name, "geometry", geometry)
+		// slog.Info("ROW", "id", id, "name", name, "geometry", wkt_geom)
+
+		orb_geom, err := wkt.Unmarshal(wkt_geom)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to unmarshal geometry", "id", id, "wkt", wkt_geom)
+		}
+
+		f := geojson.NewFeature(orb_geom)
+		f.Properties["wof:id"] = id
+		f.Properties["wof:name"] = name
+
+		fc.Append(f)
 	}
 
 	err = rows.Err()
@@ -94,35 +153,37 @@ func getDataForTile(req *http.Request, opts *TileHandlerOptions, t *maptile.Tile
 		return nil, err
 	}
 
-	return nil, nil
+	return fc, nil
 }
 
-func getTileForRequest(req *http.Request) (*maptile.Tile, error) {
+func getTileForRequest(req *http.Request) (string, *maptile.Tile, error) {
 
 	path := req.URL.Path
 
 	if !re_path.MatchString(path) {
-		return nil, fmt.Errorf("Invalid path")
+		return "", nil, fmt.Errorf("Invalid path")
 	}
 
 	m := re_path.FindStringSubmatch(path)
 
+	layer := m[1]
+
 	z, err := strconv.Atoi(m[2])
 
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	x, err := strconv.Atoi(m[3])
 
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	y, err := strconv.Atoi(m[4])
 
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	zm := maptile.Zoom(uint32(z))
@@ -133,5 +194,5 @@ func getTileForRequest(req *http.Request) (*maptile.Tile, error) {
 		Y: uint32(y),
 	}
 
-	return t, nil
+	return layer, t, nil
 }
