@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/sfomuseum/go-geoparquet-show/static/www"
+	"github.com/sfomuseum/go-http-mvt"	
 )
 
 func Run(ctx context.Context) error {
@@ -54,18 +55,19 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 	mux := http.NewServeMux()
 
-	tile_opts := &TileHandlerOptions{
-		Database:   opts.Database,
-		Datasource: opts.Datasource,
+	features_cb := GetFeaturesForTileFunc(opts.Database, opts.Datasource)
+	
+	mvt_opts := &mvt.TileHandlerOptions{
+		GetFeaturesCallback: features_cb,
 	}
 
-	tile_handler, err := NewTileHandler(tile_opts)
+	mvt_handler, err := mvt.NewTileHandler(mvt_opts)
 
 	if err != nil {
 		return err
 	}
 
-	mux.Handle("/tiles/", tile_handler)
+	mux.Handle("/tiles/", mvt_handler)
 
 	// START OF merge with go-geojson-show and put in a package or something
 
