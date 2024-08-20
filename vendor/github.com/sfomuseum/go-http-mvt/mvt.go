@@ -18,14 +18,20 @@ import (
 
 var re_path = regexp.MustCompile(`/.*/(.*)/(\d+)/(\d+)/(\d+).(\w+)$`)
 
+// GetFeaturesCallbackFunc defines the method signature for custom functions to derive a collection of named `geojson.FeatureCollection`
+// instances for a given tile request.
 type GetFeaturesCallbackFunc func(*http.Request, string, *maptile.Tile) (map[string]*geojson.FeatureCollection, error)
 
 type TileHandlerOptions struct {
+	// GetFeaturesCallback is the `GetFeaturesCallbackFunc` used to derive a collection of named `geojson.FeatureCollection` instances for a given tile request.
 	GetFeaturesCallback GetFeaturesCallbackFunc
+	// Simplify is a boolean flag to signal that tile data should be simplified (using DouglasPeucker) before being returned by the handler.
 	Simplify            bool
+	// Timings is a boolean flag to enable logging timing information (using `log/slog.Debug`).
 	Timings             bool
 }
 
+// NewTileHandler return a new `http.Handler` instance serving MVT vector tiles.
 func NewTileHandler(opts *TileHandlerOptions) (http.Handler, error) {
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {

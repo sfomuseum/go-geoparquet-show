@@ -12,16 +12,23 @@ import (
 	"time"
 )
 
+// RunWithOptions start a local webserver and then open its URL in a target source once it (the web server) is running.
 func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 	port := opts.Port
+	host := opts.Host
+
+	if host == "" {
+		host = "localhost"
+	}
 
 	if port == 0 {
 
-		listener, err := net.Listen("tcp", "localhost:0")
+		addr := fmt.Sprintf("%s:0", host)
+		listener, err := net.Listen("tcp", addr)
 
 		if err != nil {
-			return fmt.Errorf("Failed to determine next available port, %w", err)
+			return fmt.Errorf("Failed to determine next available port %s, %w", err)
 		}
 
 		port = listener.Addr().(*net.TCPAddr).Port
@@ -34,7 +41,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 	//
 
-	addr := fmt.Sprintf("localhost:%d", port)
+	addr := fmt.Sprintf("%s:%d", host, port)
 	url := fmt.Sprintf("http://%s", addr)
 
 	http_server := http.Server{

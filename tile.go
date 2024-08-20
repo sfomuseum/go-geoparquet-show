@@ -34,8 +34,23 @@ func replaceMultiPoint(s string) string {
 
 // END OF The DuckDB spatial extension returns WKT-formatted MultiPoint strings
 
-func GetFeaturesForTileFunc(db *sql.DB, datasource string) mvt.GetFeaturesCallbackFunc {
+// GetFeaturesForTileFunc returns a `mvt.GetFeaturesCallbackFunc` callback function using 'db' and 'database' to yield
+// a dictionary of GeoJSON FeatureCollections instances.
+func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) mvt.GetFeaturesCallbackFunc {
 
+	quoted_cols := make([]string, 0)
+
+	for _, c := range table_cols {
+		switch c {
+		case "geometry":
+			// pass
+		default:
+			quoted_cols = append(quoted_cols, fmt.Sprintf(`"%s"`, c))
+		}
+	}
+	
+	str_cols := strings.Join(quoted_cols, ",")
+	
 	fn := func(req *http.Request, layer string, t *maptile.Tile) (map[string]*geojson.FeatureCollection, error) {
 
 		logger := slog.Default()
@@ -60,14 +75,15 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string) mvt.GetFeaturesCallba
 		}
 
 		q := fmt.Sprintf(`SELECT
-				"wof:id","wof:name",
-				ST_AsText(ST_GeomFromWkb(geometry)) AS geometry
+				%s, ST_AsText(ST_GeomFromWkb(geometry)) AS geometry
 			  FROM
 				read_parquet("%s")
 			  WHERE
 				ST_Intersects(ST_GeomFromWkb(geometry), ST_GeomFromHEXWKB(?))`,
-			datasource)
+			str_cols, datasource)
 
+		// slog.Debug(q)
+		
 		rows, err := db.QueryContext(ctx, q, string(enc_poly))
 
 		if err != nil {
@@ -88,17 +104,29 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string) mvt.GetFeaturesCallba
 				// pass
 			}
 
-			var id float64
-			var name string
-			var wkt_geom string
+			values := make([]any, len(table_cols))
 
-			err := rows.Scan(&id, &name, &wkt_geom)
+			slog.Debug("V", "values", values, "l", len(values))
+			err := rows.Scan(values...)
 
 			if err != nil {
 				slog.Error("Failed to scan row", "error", err)
 				return nil, fmt.Errorf("Failed to scan row, %w", err)
 			}
 
+			var wkt_geom string
+			props := make(map[string]any)
+
+			for idx, k := range table_cols {
+
+				switch k {
+				case "geometry":
+					wkt_geom = values[idx].(string)
+				default:
+					props[k] = values[idx]
+				}
+			}
+			
 			// See notes above
 			if strings.HasPrefix(wkt_geom, "MULTIPOINT (") {
 				wkt_geom = fixMultiPoint(wkt_geom)
@@ -110,13 +138,12 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string) mvt.GetFeaturesCallba
 			orb_geom, err := wkt.Unmarshal(wkt_geom)
 
 			if err != nil {
-				logger.Error("Failed to unmarshal geometry", "id", id, "geom", wkt_geom, "error", err)
+				logger.Error("Failed to unmarshal geometry", "geom", wkt_geom, "error", err)
 				continue
 			}
 
 			f := geojson.NewFeature(orb_geom)
-			f.Properties["wof:id"] = id
-			f.Properties["wof:name"] = name
+			f.Properties = props
 
 			fc.Append(f)
 			feature_count += 1
