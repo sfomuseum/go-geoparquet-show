@@ -36,9 +36,41 @@ window.addEventListener("load", function load(event){
     var tiles_opts = {
 	rendererFactory: L.canvas.tile,
 	vectorTileLayerStyles: tiles_styles,
+	interactive: true,
     };
     
     var layer = L.vectorGrid.protobuf(tiles_url, tiles_opts);
+
+    layer.on('click', function(e) {
+
+	console.log("CLICK", e.layer);
+	L.DomEvent.stop(e);
+	
+	/*
+	L.popup()
+	// .setContent(e.layer.properties.name || e.layer.properties.type)
+	 .setContent(JSON.stringify(e.layer))
+	 .setLatLng(e.latlng)
+	 .openOn(map);
+	
+	clearHighlight();
+	highlight = e.layer.properties.osm_id;
+	
+	pbfLayer.setFeatureStyle(highlight, {
+	    weight: 2,
+	    color: 'red',
+	    opacity: 1,
+	    fillColor: 'red',
+	    fill: true,
+	    radius: 6,
+	    fillOpacity: 1
+	})
+	
+	L.DomEvent.stop(e);
+	*/
+	
+    });
+    
     layer.addTo(map);
 
         
