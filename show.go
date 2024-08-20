@@ -53,9 +53,9 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 	}
 
 	table_cols := make([]string, 0)
-	
+
 	// START OF get table defs
-	
+
 	q := fmt.Sprintf(`DESCRIBE SELECT * FROM read_parquet("%s")`, opts.Datasource)
 
 	rows, err := opts.Database.QueryContext(ctx, q)
@@ -68,7 +68,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 	defer rows.Close()
 
 	for rows.Next() {
-	
+
 		var col_name string
 		var col_type string
 		var col_null any
@@ -77,7 +77,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 		var col_extra any
 
 		err := rows.Scan(&col_name, &col_type, &col_null, &col_key, &col_default, &col_extra)
-		
+
 		if err != nil {
 			slog.Error("Failed to scan row", "error", err)
 			return fmt.Errorf("Failed to scan row, %w", err)
@@ -88,13 +88,13 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 	}
 
 	err = rows.Err()
-	
+
 	if err != nil {
 		return fmt.Errorf("There was a problem scanning rows, %w", err)
 	}
-	
+
 	// END OF get table defs
-	
+
 	mux := http.NewServeMux()
 
 	www_fs := http.FS(www.FS)

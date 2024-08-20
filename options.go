@@ -12,15 +12,15 @@ import (
 
 type RunOptions struct {
 	// A valid `sql.DB` (DuckDB) instance to use for querying data
-	Database   *sql.DB
+	Database *sql.DB
 	// The URI of the GeoParquet data. Specifically, the value passed to the DuckDB read_parquet() function.
 	Datasource string
 	// The port number to listen for requests on (on localhost). If 0 then a random port number will be chosen.
-	Port       int
+	Port int
 	// Enable verbose (debug) logging.
-	Verbose    bool
+	Verbose bool
 	// A `sfomuseum/go-www-show.Browser` instance to use for opening URLs.
-	Browser    www_show.Browser
+	Browser www_show.Browser
 }
 
 // Derive a new `RunOptions` instance from 'fs'.

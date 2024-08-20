@@ -26,7 +26,7 @@ window.addEventListener("load", function load(event){
 		fillColor: 'yellow',
 		fill: true,
 		radius: 6,
-		fillOpacity: 0.7
+		fillOpacity: 0.1
 	    }
 	}
     };
