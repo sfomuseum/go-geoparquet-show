@@ -38,3 +38,4 @@ Valid options are:
 * https://github.com/sfomuseum/go-http-mvt
 * https://github.com/sfomuseum/go-www-show
 * https://github.com/marcboeker/go-duckdb
+* https://github.com/Leaflet/Leaflet.VectorGrid
