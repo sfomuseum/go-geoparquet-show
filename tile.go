@@ -1,12 +1,14 @@
 package show
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"regexp"
 	"strconv"
+	// "strings"
 	"time"
 
 	"github.com/paulmach/orb/encoding/mvt"
@@ -17,7 +19,7 @@ import (
 	"github.com/paulmach/orb/simplify"
 )
 
-var re_path = regexp.MustCompile(`/(.*)/(\d+)/(\d+)/(\d+).(\w+)$`)
+var re_path = regexp.MustCompile(`/.*/(.*)/(\d+)/(\d+)/(\d+).(\w+)$`)
 
 type TileHandlerOptions struct {
 	Database   *sql.DB
@@ -28,13 +30,18 @@ func NewTileHandler(opts *TileHandlerOptions) (http.Handler, error) {
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
+		ctx := req.Context()
+		ctx, cancel := context.WithCancel(ctx)
+
+		defer cancel()
+
 		logger := slog.Default()
 		logger = logger.With("path", req.URL.Path)
 
 		t1 := time.Now()
 
 		defer func() {
-			logger.Info("Time to process tile", "time", time.Since(t1))
+			logger.Debug("Time to process tile", "time", time.Since(t1))
 		}()
 
 		layer, t, err := getTileForRequest(req)
@@ -47,7 +54,7 @@ func NewTileHandler(opts *TileHandlerOptions) (http.Handler, error) {
 
 		logger = logger.With("layer", layer)
 
-		fc, err := getFeaturesForTile(req, opts, t)
+		fc, err := getFeaturesForTile(req, opts, layer, t)
 
 		if err != nil {
 			logger.Error("Failed to get data for tile", "error", err)
@@ -55,8 +62,14 @@ func NewTileHandler(opts *TileHandlerOptions) (http.Handler, error) {
 			return
 		}
 
+		t2 := time.Now()
+
+		defer func() {
+			logger.Debug("Time to yield MVT", "time", time.Since(t2))
+		}()
+
 		collections := map[string]*geojson.FeatureCollection{
-			"debug": fc,
+			layer: fc,
 		}
 
 		layers := mvt.NewLayers(collections)
@@ -83,7 +96,17 @@ func NewTileHandler(opts *TileHandlerOptions) (http.Handler, error) {
 	return http.HandlerFunc(fn), nil
 }
 
-func getFeaturesForTile(req *http.Request, opts *TileHandlerOptions, t *maptile.Tile) (*geojson.FeatureCollection, error) {
+func getFeaturesForTile(req *http.Request, opts *TileHandlerOptions, layer string, t *maptile.Tile) (*geojson.FeatureCollection, error) {
+
+	logger := slog.Default()
+	logger = logger.With("path", req.URL.Path)
+
+	feature_count := 0
+	t1 := time.Now()
+
+	defer func() {
+		logger.Debug("Time to get features", "count", feature_count, "time", time.Since(t1))
+	}()
 
 	ctx := req.Context()
 
@@ -105,8 +128,6 @@ func getFeaturesForTile(req *http.Request, opts *TileHandlerOptions, t *maptile.
 				ST_Intersects(ST_GeomFromWkb(geometry), ST_GeomFromHEXWKB(?))`,
 		opts.Datasource)
 
-	slog.Info(q)
-
 	rows, err := opts.Database.QueryContext(ctx, q, string(enc_poly))
 
 	if err != nil {
@@ -120,6 +141,13 @@ func getFeaturesForTile(req *http.Request, opts *TileHandlerOptions, t *maptile.
 
 	for rows.Next() {
 
+		select {
+		case <-ctx.Done():
+			break
+		default:
+			// pass
+		}
+
 		var id float64
 		var name string
 		var wkt_geom string
@@ -131,12 +159,19 @@ func getFeaturesForTile(req *http.Request, opts *TileHandlerOptions, t *maptile.
 			return nil, fmt.Errorf("Failed to scan row, %w", err)
 		}
 
-		// slog.Info("ROW", "id", id, "name", name, "geometry", wkt_geom)
+		/*
+			if strings.HasPrefix(wkt_geom, "MULTIPOINT ("){
+				wkt_geom = strings.Replace(wkt_geom, "MULTIPOINT (", "MULTIPOINT(", 1)
+			}
+		*/
 
 		orb_geom, err := wkt.Unmarshal(wkt_geom)
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to unmarshal geometry", "id", id, "wkt", wkt_geom)
+			logger.Error("Failed to unmarshal geometry", "id", id, "geom", wkt_geom, "error", err)
+			continue
+
+			// return nil, fmt.Errorf("Failed to unmarshal geometry, %w", err)
 		}
 
 		f := geojson.NewFeature(orb_geom)
@@ -144,6 +179,7 @@ func getFeaturesForTile(req *http.Request, opts *TileHandlerOptions, t *maptile.
 		f.Properties["wof:name"] = name
 
 		fc.Append(f)
+		feature_count += 1
 	}
 
 	err = rows.Err()

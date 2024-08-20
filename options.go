@@ -15,6 +15,7 @@ type RunOptions struct {
 	Database   *sql.DB
 	Datasource string
 	Port       int
+	Verbose    bool
 }
 
 func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, error) {
@@ -31,6 +32,7 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 		Database:   db,
 		Datasource: data_source,
 		Port:       port,
+		Verbose:    verbose,
 	}
 
 	return opts, nil

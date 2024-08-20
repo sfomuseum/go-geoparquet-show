@@ -4,15 +4,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	_ "io"
 	"log"
 	"log/slog"
 	"net"
 	"net/http"
-	_ "net/url"
 	"os"
 	"os/signal"
-	_ "strings"
 	"time"
 
 	"github.com/sfomuseum/go-geoparquet-show/static/www"
@@ -35,6 +32,11 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 }
 
 func RunWithOptions(ctx context.Context, opts *RunOptions) error {
+
+	if opts.Verbose {
+		slog.SetLogLoggerLevel(slog.LevelDebug)
+		slog.Debug("Verbose logging enabled")
+	}
 
 	setup := []string{
 		"INSTALL spatial",
