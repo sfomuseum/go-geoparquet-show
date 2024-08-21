@@ -27,8 +27,9 @@ window.addEventListener("load", function load(event){
 
 	console.log("BOUNDS", bounds);
 	
-	var tiles_url = "/tiles/all/{z}/{x}/{y}.mvt";
-
+	var tiles_url = "http://" + location.host + "/tiles/all/{z}/{x}/{y}.mvt";
+	console.log("TILES", tiles_url);
+	
 	//
 	
 	map = new maplibregl.Map({
@@ -39,11 +40,11 @@ window.addEventListener("load", function load(event){
 
 	map.on('load', () => {
 
-	    console.log("WOO");
-	    
             map.addSource('all', {
 		type: 'vector',
-		url: tiles_url,
+		tiles: [
+		    tiles_url,
+		],
             });
             map.addLayer({
 		'id': 'terrain-data',
