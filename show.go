@@ -39,7 +39,9 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 		slog.Debug("Verbose logging enabled")
 	}
 
-	map_cfg := &mapConfig{}
+	map_cfg := &mapConfig{
+		LabelProperties: opts.LabelProperties,
+	}
 
 	// START OF set up database
 

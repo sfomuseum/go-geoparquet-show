@@ -46,8 +46,34 @@ window.addEventListener("load", function load(event){
 		    tiles_url,
 		],
             });
+	    
             map.addLayer({
-		'id': 'terrain-data',
+		'id': 'all-fill',
+		'type': 'fill',
+		'source': 'all',
+		'source-layer': 'all',
+		'paint': {
+		    'fill-color': '#cc6699',
+		    'fill-opacity': 0.1,
+		}
+            });
+
+	    /*
+            map.addLayer({
+		'id': 'all-circle',
+		'type': 'circle',
+		'source': 'all',
+		'source-layer': 'all',
+		'paint': {
+		    'circle-color': '#000',
+		    'circle-radius': 4,
+		    'circle-opacity': 0.5,
+		}
+            });
+	     */
+	    
+            map.addLayer({
+		'id': 'all-line',
 		'type': 'line',
 		'source': 'all',
 		'source-layer': 'all',
@@ -56,10 +82,47 @@ window.addEventListener("load", function load(event){
                     'line-cap': 'round'
 		},
 		'paint': {
-                    'line-color': '#ff69b4',
-                    'line-width': 1
+                    'line-color': '#000',
+                    'line-width': 1,
 		}
             });
+	    
+	    var label_props = cfg.label_properties;
+
+	    if (label_props){
+
+		var count_props = label_props.length;
+		
+		if (count_props > 0) {
+
+		    map.on('click', 'all-fill', (e) => {
+			
+			var label_text = [];
+			
+			for (var i=0; i < count_props; i++){
+			    var prop = label_props[i];
+			    var value = e.features[0].properties[ prop ];
+			    label_text.push("<strong>" + prop + "</strong> " + value);
+			}
+			
+			if (label_text.length > 0){			    
+			    new maplibregl.Popup()
+					  .setLngLat(e.lngLat)
+					  .setHTML(label_text.join("<br />"))
+					  .addTo(map);
+			};
+		    });
+		}
+	    }
+	    
+            map.on('mouseenter', 'all', () => {
+		map.getCanvas().style.cursor = 'pointer';
+            });
+
+            map.on('mouseleave', 'all', () => {
+		map.getCanvas().style.cursor = '';
+            });
+	    
 	});
 
 	return;

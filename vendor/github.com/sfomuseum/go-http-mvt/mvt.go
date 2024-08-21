@@ -113,7 +113,7 @@ func getTileForRequest(req *http.Request) (string, *maptile.Tile, error) {
 	path := req.URL.Path
 
 	if !re_path.MatchString(path) {
-		return "", nil, fmt.Errorf("Invalid path, %s", path)
+		return "", nil, fmt.Errorf("Invalid path")
 	}
 
 	m := re_path.FindStringSubmatch(path)

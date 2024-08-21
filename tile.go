@@ -5,6 +5,7 @@ package show
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"regexp"
@@ -105,6 +106,11 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 		rows, err := db.QueryContext(ctx, q, string(enc_poly))
 
 		if err != nil {
+
+			if errors.Is(err, context.Canceled) {
+				return nil, nil
+			}
+
 			slog.Error("Failed to query database", "error", err, "query", q, "geom", enc_poly)
 			return nil, fmt.Errorf("Failed to query database, %w", err)
 		}
@@ -136,6 +142,11 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 			// Well not quite, there's a bit more below...
 
 			if err != nil {
+
+				if errors.Is(err, context.Canceled) {
+					break
+				}
+
 				slog.Error("Failed to scan row", "error", err)
 				return nil, fmt.Errorf("Failed to scan row, %w", err)
 			}
@@ -181,7 +192,10 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 		err = rows.Err()
 
 		if err != nil {
-			return nil, fmt.Errorf("There was a problem scanning rows, %w", err)
+
+			if !errors.Is(err, context.Canceled) {
+				return nil, fmt.Errorf("There was a problem scanning rows, %w", err)
+			}
 		}
 
 		collections := map[string]*geojson.FeatureCollection{

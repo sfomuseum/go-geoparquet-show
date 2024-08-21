@@ -21,7 +21,8 @@ type RunOptions struct {
 	// Enable verbose (debug) logging.
 	Verbose bool
 	// A `sfomuseum/go-www-show.Browser` instance to use for opening URLs.
-	Browser www_show.Browser
+	Browser         www_show.Browser
+	LabelProperties []string
 }
 
 // Derive a new `RunOptions` instance from 'fs'.
@@ -42,11 +43,12 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 	}
 
 	opts := &RunOptions{
-		Database:   db,
-		Datasource: data_source,
-		Port:       port,
-		Verbose:    verbose,
-		Browser:    browser,
+		Database:        db,
+		Datasource:      data_source,
+		Port:            port,
+		Verbose:         verbose,
+		Browser:         browser,
+		LabelProperties: label_properties,
 	}
 
 	return opts, nil
