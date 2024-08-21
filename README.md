@@ -116,11 +116,19 @@ $> ./bin/show \
 2024/08/21 13:29:17 INFO Server is ready and features are viewable url=http://localhost:60238
 ```
 
+The [sfomuseum-data-whosonfirst](https://github.com/sfomuseum-data/sfomuseum-data-whosonfirst) repository is a clone of [Who's On First](https://whosonfirst.org) (WOF) records specific to [SFO Museum](https://collection.sfomuseum.org) so many places (localities, regions even some countries) are not represented in these data.
+
 ![](docs/images/go-geoparquet-show-maplibre-pkx.png)
 
-There are still some interaction bugs
+There are still some interaction bugs around click events and popup menus. For example the WOF for [JFK airport](https://spelunker.whosonfirst.org/id/102534365), with its distinctively wonky geometry derived from the [Flickr Alpha Shapes](https://code.flickr.net/2008/10/30/the-shape-of-alpha/), is clearly present in the data but it is not possible to select it.
 
 ![](docs/images/go-geoparquet-show-maplibre-jfk.png)
+
+## Help wanted
+
+### Leaflet.VectorGrid
+
+### MapLibre GL JS
 
 ## See also
 
