@@ -74,7 +74,7 @@ $> ./bin/show \
 
 The map view is initialized to fit the extent of all the features in the GeoParquet database. Here's another screenshot zoomed in to a smaller section:
 
-![](docs/images/go-geoparquet-show-extent.png)
+![](docs/images/go-geoparquet-show-zoom.png)
 
 ## See also
 
