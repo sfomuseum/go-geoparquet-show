@@ -22,6 +22,10 @@ type RunOptions struct {
 	Verbose bool
 	// A `sfomuseum/go-www-show.Browser` instance to use for opening URLs.
 	Browser www_show.Browser
+	// An optional list of properties to use when creating popup labels
+	LabelProperties []string
+	// Which vector tile renderer to use. Valid options are: leaflet, maplibre.
+	Renderer string `json:"renderer"`
 }
 
 // Derive a new `RunOptions` instance from 'fs'.
@@ -42,11 +46,13 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 	}
 
 	opts := &RunOptions{
-		Database:   db,
-		Datasource: data_source,
-		Port:       port,
-		Verbose:    verbose,
-		Browser:    browser,
+		Database:        db,
+		Datasource:      data_source,
+		Port:            port,
+		Verbose:         verbose,
+		Browser:         browser,
+		LabelProperties: label_properties,
+		Renderer:        renderer,
 	}
 
 	return opts, nil

@@ -39,7 +39,14 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 		slog.Debug("Verbose logging enabled")
 	}
 
-	map_cfg := &mapConfig{}
+	map_cfg := &mapConfig{
+		LabelProperties: opts.LabelProperties,
+		Renderer:        opts.Renderer,
+	}
+
+	if len(opts.LabelProperties) > 0 && opts.Renderer == "leaflet" {
+		slog.Warn("Rendering label properties in Leaflet maps is currently disabled.")
+	}
 
 	// START OF set up database
 
