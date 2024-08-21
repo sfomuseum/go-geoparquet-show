@@ -20,6 +20,48 @@ window.addEventListener("load", function load(event){
     
     var init = function(cfg){
 
+	var bounds = [
+	    [ cfg.minx, cfg.miny ],
+	    [ cfg.maxx, cfg.maxy ],
+	];
+
+	console.log("BOUNDS", bounds);
+	
+	var tiles_url = "/tiles/all/{z}/{x}/{y}.mvt";
+
+	//
+	
+	map = new maplibregl.Map({
+            container: 'map',
+	    style: 'https://demotiles.maplibre.org/style.json',
+	    bounds: bounds,
+	});
+
+	map.on('load', () => {
+
+	    console.log("WOO");
+	    
+            map.addSource('all', {
+		type: 'vector',
+		url: tiles_url,
+            });
+            map.addLayer({
+		'id': 'terrain-data',
+		'type': 'line',
+		'source': 'all',
+		'source-layer': 'all',
+		'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+		},
+		'paint': {
+                    'line-color': '#ff69b4',
+                    'line-width': 1
+		}
+            });
+	});
+
+	return;
 	
 	var bounds = [
 	    [ cfg.miny, cfg.minx ],
