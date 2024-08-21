@@ -3,12 +3,11 @@ package show
 // https://github.com/victorspringer/http-cache
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"regexp"
-	// "reflect"
 	"strings"
 	"time"
 
@@ -67,19 +66,19 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 	// Generate a CSV string of quoted_cols for use with SQL queries below.
 	str_cols := strings.Join(quoted_cols, ",")
 
-	fn := func(req *http.Request, layer string, t *maptile.Tile) (map[string]*geojson.FeatureCollection, error) {
+	fn := func(ctx context.Context, layer string, t *maptile.Tile) (map[string]*geojson.FeatureCollection, error) {
 
 		logger := slog.Default()
-		logger = logger.With("path", req.URL.Path)
+		logger = logger.With("layer", layer)
+		// logger = logger.With("tile", t)
 
-		feature_count := 0
+		fc := geojson.NewFeatureCollection()
+
 		t1 := time.Now()
 
 		defer func() {
-			logger.Debug("Time to get features", "count", feature_count, "time", time.Since(t1))
+			logger.Debug("Time to get features", "count", len(fc.Features), "time", time.Since(t1))
 		}()
-
-		ctx := req.Context()
 
 		bound := t.Bound()
 		poly := bound.ToPolygon()
@@ -111,8 +110,6 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 		}
 
 		defer rows.Close()
-
-		fc := geojson.NewFeatureCollection()
 
 		for rows.Next() {
 
@@ -179,7 +176,6 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 			f.Properties = props
 
 			fc.Append(f)
-			feature_count += 1
 		}
 
 		err = rows.Err()

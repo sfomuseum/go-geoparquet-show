@@ -3,6 +3,7 @@ package mvt
 // https://github.com/victorspringer/http-cache
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -20,7 +21,7 @@ var re_path = regexp.MustCompile(`/.*/(.*)/(\d+)/(\d+)/(\d+).(\w+)$`)
 
 // GetFeaturesCallbackFunc defines the method signature for custom functions to derive a collection of named `geojson.FeatureCollection`
 // instances for a given tile request.
-type GetFeaturesCallbackFunc func(*http.Request, string, *maptile.Tile) (map[string]*geojson.FeatureCollection, error)
+type GetFeaturesCallbackFunc func(context.Context, string, *maptile.Tile) (map[string]*geojson.FeatureCollection, error)
 
 type TileHandlerOptions struct {
 	// GetFeaturesCallback is the `GetFeaturesCallbackFunc` used to derive a collection of named `geojson.FeatureCollection` instances for a given tile request.
@@ -36,6 +37,11 @@ func NewTileHandler(opts *TileHandlerOptions) (http.Handler, error) {
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
+		ctx := req.Context()
+		ctx, cancel := context.WithCancel(ctx)
+
+		defer cancel()
+		
 		logger := slog.Default()
 		logger = logger.With("path", req.URL.Path)
 
@@ -58,7 +64,7 @@ func NewTileHandler(opts *TileHandlerOptions) (http.Handler, error) {
 
 		logger = logger.With("layer", layer)
 
-		collections, err := opts.GetFeaturesCallback(req, layer, t)
+		collections, err := opts.GetFeaturesCallback(ctx, layer, t)
 
 		if err != nil {
 			logger.Error("Failed to get data for tile", "error", err)

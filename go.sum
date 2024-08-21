@@ -47,8 +47,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/sfomuseum/go-flags v0.10.0 h1:1OC1ACxpWMsl3XQ9OeNVMQj7Zi2CzufP3Rym3mPI8HU=
 github.com/sfomuseum/go-flags v0.10.0/go.mod h1:VXOnnX1/yxQpX2yiwHaBV6aCmhtszQOL5bL1/nNo3co=
-github.com/sfomuseum/go-http-mvt v0.0.1 h1:CiNy5pI8Q2nBFeYB/vHdS7zJdISUiw7Agk2TDowaYS8=
-github.com/sfomuseum/go-http-mvt v0.0.1/go.mod h1:ZYz/rgVk/8PbqRYJpbUF0WQns3WP/gm0vE2JVcKn+YI=
+github.com/sfomuseum/go-http-mvt v0.0.2 h1:QBtqxRSVerE9UyDBWPIaEQYkfHDAXN52JYrZsa83JOg=
+github.com/sfomuseum/go-http-mvt v0.0.2/go.mod h1:ZYz/rgVk/8PbqRYJpbUF0WQns3WP/gm0vE2JVcKn+YI=
 github.com/sfomuseum/go-www-show v1.0.0 h1:Q0vRdbCz2Ulqgut85vm0kRyO7FXPbO/gay5QMuWPqk8=
 github.com/sfomuseum/go-www-show v1.0.0/go.mod h1:P2RVABhL8JumRWLHXQ6AA8epIkBSTWAZ5LlL7zO07TE=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

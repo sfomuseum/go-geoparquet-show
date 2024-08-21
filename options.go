@@ -10,6 +10,7 @@ import (
 	www_show "github.com/sfomuseum/go-www-show"
 )
 
+// RunOptions defines options for configuring and starting a local web server to serve GeoParquet data as vector tiles.
 type RunOptions struct {
 	// A valid `sql.DB` (DuckDB) instance to use for querying data
 	Database *sql.DB

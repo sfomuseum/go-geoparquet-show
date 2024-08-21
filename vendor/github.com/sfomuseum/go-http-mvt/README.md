@@ -15,7 +15,7 @@ func main() {
 
 	// This is your custom code to implement the following method signature
 	//  to return a dictionary of GeoJSON FeatureCollection instances:
-	// func(*http.Request, string, *maptile.Tile) (map[string]*geojson.FeatureCollection, error)
+	// func(context.Context, string, *maptile.Tile) (map[string]*geojson.FeatureCollection, error)
 	
 	var features_cb := mvt.GetFeaturesCallbackFunc
 

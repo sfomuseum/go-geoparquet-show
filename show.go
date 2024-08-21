@@ -2,6 +2,7 @@ package show
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -37,6 +38,10 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
 		slog.Debug("Verbose logging enabled")
 	}
+
+	map_cfg := &mapConfig{}
+
+	// START OF set up database
 
 	setup := []string{
 		"INSTALL spatial",
@@ -83,7 +88,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 			return fmt.Errorf("Failed to scan row, %w", err)
 		}
 
-		slog.Debug("Column definition", "name", col_name, "type", col_type)
+		// slog.Debug("Column definition", "name", col_name, "type", col_type)
 		table_cols = append(table_cols, col_name)
 	}
 
@@ -95,10 +100,39 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 	// END OF get table defs
 
+	// START OF feature(s) extent
+
+	extent_q := fmt.Sprintf(`SELECT MIN(ST_XMin(ST_GeomFromWKB(geometry))) AS minx, MIN(ST_YMin(ST_GeomFromWKB(geometry))) AS miny, MAX(ST_Xmax(ST_GeomFromWKB(geometry))) AS maxx, MAX(ST_YMax(ST_GeomFromWKB(geometry))) AS maxy FROM read_parquet("%s")`, opts.Datasource)
+
+	extent_row := opts.Database.QueryRowContext(ctx, extent_q)
+
+	var minx float64
+	var miny float64
+	var maxx float64
+	var maxy float64
+
+	err = extent_row.Scan(&minx, &miny, &maxx, &maxy)
+
+	if err != nil {
+		return fmt.Errorf("Failed to derive database extent, %w", err)
+	}
+
+	map_cfg.MinX = minx
+	map_cfg.MinY = miny
+	map_cfg.MaxX = maxx
+	map_cfg.MaxY = maxy
+
+	// END OF feature(s) extent
+
 	mux := http.NewServeMux()
 
 	www_fs := http.FS(www.FS)
 	mux.Handle("/", http.FileServer(www_fs))
+
+	map_cfg_handler := mapConfigHandler(map_cfg)
+	mux.Handle("/map.json", map_cfg_handler)
+
+	// https://github.com/sfomuseum/go-http-mvt
 
 	features_cb := GetFeaturesForTileFunc(opts.Database, opts.Datasource, table_cols)
 
@@ -115,6 +149,8 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 	mux.Handle("/tiles/", mvt_handler)
 
+	// https://github.com/sfomuseum/go-www-show
+
 	www_show_opts := &www_show.RunOptions{
 		Port:    opts.Port,
 		Mux:     mux,
@@ -122,4 +158,24 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 	}
 
 	return www_show.RunWithOptions(ctx, www_show_opts)
+}
+
+func mapConfigHandler(cfg *mapConfig) http.Handler {
+
+	fn := func(rsp http.ResponseWriter, req *http.Request) {
+
+		rsp.Header().Set("Content-type", "application/json")
+
+		enc := json.NewEncoder(rsp)
+		err := enc.Encode(cfg)
+
+		if err != nil {
+			slog.Error("Failed to encode map config", "error", err)
+			http.Error(rsp, "Internal server error", http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	return http.HandlerFunc(fn)
 }

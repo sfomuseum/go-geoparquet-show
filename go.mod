@@ -6,7 +6,7 @@ require (
 	github.com/marcboeker/go-duckdb v1.7.1
 	github.com/paulmach/orb v0.11.1
 	github.com/sfomuseum/go-flags v0.10.0
-	github.com/sfomuseum/go-http-mvt v0.0.1
+	github.com/sfomuseum/go-http-mvt v0.0.2
 	github.com/sfomuseum/go-www-show v1.0.0
 )
 
