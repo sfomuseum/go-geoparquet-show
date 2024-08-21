@@ -12,7 +12,7 @@ It's like [go-geojson-show](https://github.com/sfomuseum/go-geojson-show) (which
 
 * It works reasonably well for small GeoParquet files. It is _very slow_ for large GeoParquet files. Under the hood it is using [DuckDB](https://www.duckdb.org/), and more specifically the [go-duckdb](https://github.com/marcboeker/go-duckdb) package, to query GeoParquet files. Maybe I am just "doing it wrong"? 
 
-* There are no interactive features yet. The code is using the [Leaflet/Leaflet.VectorGrid](https://github.com/Leaflet/Leaflet.VectorGrid) package to render tiles but all the map `onclick` events trigger "L.DomEvent._fakeStop is not a function" which I haven't figured out yet. Any help or pointers would be appreciated.
+* There are no interactive features yet. The code is using the [Leaflet/Leaflet.VectorGrid](https://github.com/Leaflet/Leaflet.VectorGrid) package to render tiles but all the map `onclick` events trigger "L.DomEvent._fakeStop is not a function" errors which I haven't figured out yet. Any help or pointers would be appreciated.
 
 * It is not possible to define custom styles yet. There is a single global style applied to all features.
 
