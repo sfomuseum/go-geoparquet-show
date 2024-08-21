@@ -80,6 +80,8 @@ The map view is initialized to fit the extent of all the features in the GeoParq
 
 ![](docs/images/go-geoparquet-show-zoom.png)
 
+For reasons I don't really understand yet the [Leaflet/Leaflet.VectorGrid](https://github.com/Leaflet/Leaflet.VectorGrid) package which is used to render vector tiles throws errors for `onclick` events in the map so those interactions are currently disabled.
+
 ##### Serve a GeoParquet file derived from all the records in the [sfomuseum-data-architecture](https://github.com/sfomuseum-data/sfomuseum-data-architecture) repository using the [MapLibre-GL](https://maplibre.org/maplibre-gl-js) renderer:
 
 ![](docs/images/go-geoparquet-show-maplibre-sfo-arch.png)
@@ -94,9 +96,11 @@ $> ./bin/show \
 2024/08/21 13:40:52 INFO Server is ready and features are viewable url=http://localhost:60581
 ```
 
+This is the same as the previous example except that the code is using [MapLibre-GL](https://maplibre.org/maplibre-gl-js) renderer to draw feature and enable popup menus when individual features are clicked on.
+
 ##### Serve a GeoParquet file derived from all the records in the [sfomuseum-data-whosonfirst](https://github.com/sfomuseum-data/sfomuseum-data-whosonfirst) repository using the [MapLibre-GL](https://maplibre.org/maplibre-gl-js) renderer:
 
-![](docs/images/go-geoparquet-show-maplibre-sfo-arch.png)
+![](docs/images/go-geoparquet-show-maplibre-wof.png)
 
 ```
 $> ./bin/show \
