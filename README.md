@@ -84,6 +84,7 @@ The map view is initialized to fit the extent of all the features in the GeoParq
 
 ![](docs/images/go-geoparquet-show-maplibre-sfo-arch.png)
 
+```
 $> ./bin/show \
 	-data-source /usr/local/data/arch.geoparquet \
 	-label wof:id \
