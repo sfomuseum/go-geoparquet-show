@@ -1,38 +1,64 @@
 window.addEventListener("load", function load(event){
 
-    var map;
+    var init_leaflet = function(cfg){
 
-    // To do: Read this from cfg
-    var tiles_styles = {
-	
-	all: function(properties, zoom) {
-	    return {
-		weight: 2,
-		color: 'red',
-		opacity: .5,
-		fillColor: 'yellow',
-		fill: true,
-		radius: 6,
-		fillOpacity: 0.1
+	var bounds = [
+	    [ cfg.miny, cfg.minx ],
+	    [ cfg.maxy, cfg.maxx ],
+	];
+
+	// To do: Read this from cfg
+	var tiles_styles = {
+	    
+	    all: function(properties, zoom) {
+		return {
+		    weight: 2,
+		    color: 'red',
+		    opacity: .5,
+		    fillColor: 'yellow',
+		    fill: true,
+		    radius: 6,
+		    fillOpacity: 0.1
+		}
 	    }
-	}
+	};
+	
+	var map = L.map('map');
+	map.fitBounds(bounds);
+
+	// To do: Read this from cfg	
+	var tiles_url = "/tiles/all/{z}/{x}/{y}.mvt";
+	
+	var tiles_opts = {
+	    rendererFactory: L.canvas.tile,
+	    vectorTileLayerStyles: tiles_styles,
+	    interactive: true,
+	};
+	
+	var layer = L.vectorGrid.protobuf(tiles_url, tiles_opts);
+
+	// https://github.com/Leaflet/Leaflet.VectorGrid/issues/148
+
+	/*
+	layer.on('click', function(e) {
+	    console.log("CLICK", e.layer);
+	});
+	*/
+	
+	layer.addTo(map);
+	
     };
-    
-    var init = function(cfg){
+
+    var init_maplibre = function(cfg){
 
 	var bounds = [
 	    [ cfg.minx, cfg.miny ],
 	    [ cfg.maxx, cfg.maxy ],
 	];
 
-	console.log("BOUNDS", bounds);
-	
 	var tiles_url = "http://" + location.host + "/tiles/all/{z}/{x}/{y}.mvt";
-	console.log("TILES", tiles_url);
 	
-	//
-	
-	map = new maplibregl.Map({
+	var map = new maplibregl.Map({
             container: 'map',
 	    style: 'https://demotiles.maplibre.org/style.json',
 	    bounds: bounds,
@@ -127,33 +153,22 @@ window.addEventListener("load", function load(event){
 
 	return;
 	
-	var bounds = [
-	    [ cfg.miny, cfg.minx ],
-	    [ cfg.maxy, cfg.maxx ],
-	];
-		
-	map = L.map('map');
-	map.fitBounds(bounds);
-
-	// To do: Read this from cfg	
-	var tiles_url = "/tiles/all/{z}/{x}/{y}.mvt";
-	
-	var tiles_opts = {
-	    rendererFactory: L.canvas.tile,
-	    vectorTileLayerStyles: tiles_styles,
-	    interactive: true,
-	};
-	
-	var layer = L.vectorGrid.protobuf(tiles_url, tiles_opts);
-
-	// https://github.com/Leaflet/Leaflet.VectorGrid/issues/148
-	
-	layer.on('click', function(e) {
-	    console.log("CLICK", e.layer);
-	});
+    };
     
-	layer.addTo(map);
-	
+    var init = function(cfg){
+
+	switch (cfg.renderer){
+	    case "maplibre":
+		init_maplibre(cfg);
+		break;
+	    default:
+		if (cfg.renderer != "leaflet"){
+		    log.warn("Unknown renderer, defaulting to leaflet", cfg.renderer)
+		}
+		init_leaflet(cfg);
+		break;
+	}
+		
     };
     
     fetch("/map.json")

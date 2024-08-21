@@ -27,7 +27,7 @@ func DefaultFlagSet() *flag.FlagSet {
 	fs.StringVar(&data_source, "data-source", "", "The URI of the GeoParquet data. Specifically, the value passed to the DuckDB read_parquet() function.")
 	fs.StringVar(&db_engine, "database-engine", "duckdb", "The database/sql engine (driver) to use.")
 
-	fs.StringVar(&renderer, "renderer", "maplibre", "Which rendering library to use to draw vector tiles. Valid options are: leaflet, maplibre.")
+	fs.StringVar(&renderer, "renderer", "leaflet", "Which rendering library to use to draw vector tiles. Valid options are: leaflet, maplibre.")
 	fs.Var(&label_properties, "label", "Zero or more (GeoJSON Feature) properties to use to construct a label for a feature's popup menu when it is clicked on.")
 
 	fs.BoolVar(&verbose, "verbose", false, "Enable vebose (debug) logging.")
