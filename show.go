@@ -41,6 +41,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 	map_cfg := &mapConfig{
 		LabelProperties: opts.LabelProperties,
+		Renderer:        opts.Renderer,
 	}
 
 	// START OF set up database

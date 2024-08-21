@@ -21,8 +21,11 @@ type RunOptions struct {
 	// Enable verbose (debug) logging.
 	Verbose bool
 	// A `sfomuseum/go-www-show.Browser` instance to use for opening URLs.
-	Browser         www_show.Browser
+	Browser www_show.Browser
+	// An optional list of properties to use when creating popup labels
 	LabelProperties []string
+	// Which vector tile renderer to use. Valid options are: leaflet, maplibre.
+	Renderer string `json:"renderer"`
 }
 
 // Derive a new `RunOptions` instance from 'fs'.
@@ -49,6 +52,7 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 		Verbose:         verbose,
 		Browser:         browser,
 		LabelProperties: label_properties,
+		Renderer:        renderer,
 	}
 
 	return opts, nil
