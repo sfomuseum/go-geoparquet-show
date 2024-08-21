@@ -12,7 +12,7 @@ It's like [go-geojson-show](https://github.com/sfomuseum/go-geojson-show) (which
 
 * It works reasonably well for small GeoParquet files. It is _very slow_ for large GeoParquet files. Under the hood it is using [DuckDB](https://www.duckdb.org/), and more specifically the [go-duckdb](https://github.com/marcboeker/go-duckdb) package, to query GeoParquet files. Maybe I am just "doing it wrong"? 
 
-* There are no interactive features yet. The code is using the [Leaflet/Leaflet.VectorGrid](https://github.com/Leaflet/Leaflet.VectorGrid) package to render tiles but all the map `onclick` events trigger "L.DomEvent._fakeStop is not a function" errors which I haven't figured out yet. Any help or pointers would be appreciated.
+* There are no interactive features for the Leaflet-based renderer yet. The code is using the [Leaflet/Leaflet.VectorGrid](https://github.com/Leaflet/Leaflet.VectorGrid) package to render tiles but all the map `onclick` events trigger "L.DomEvent._fakeStop is not a function" errors which I haven't figured out yet. Any help or pointers would be appreciated. If you want or need interactive popups please use the "maplibre" renderer.
 
 * It is not possible to define custom styles yet. There is a single global style applied to all features.
 
@@ -120,15 +120,29 @@ The [sfomuseum-data-whosonfirst](https://github.com/sfomuseum-data/sfomuseum-dat
 
 ![](docs/images/go-geoparquet-show-maplibre-pkx.png)
 
-There are still some interaction bugs around click events and popup menus. For example the WOF for [JFK airport](https://spelunker.whosonfirst.org/id/102534365), with its distinctively wonky geometry derived from the [Flickr Alpha Shapes](https://code.flickr.net/2008/10/30/the-shape-of-alpha/), is clearly present in the data but it is not possible to select it.
+There are still some interaction bugs around click events and popup menus. For example the WOF record for [JFK airport](https://spelunker.whosonfirst.org/id/102534365), with its distinctively wonky geometry derived from the [Flickr Alpha Shapes](https://code.flickr.net/2008/10/30/the-shape-of-alpha/), is clearly present in the data but it is not possible to select it.
 
 ![](docs/images/go-geoparquet-show-maplibre-jfk.png)
 
 ## Help wanted
 
+Here's a short list of things which are on the "to do" list that I'd love help or suggestions with. As of this writing they are all JavaScript issues related to the code in [static/www/javascript/show.js](static/www/javascript/show.js).
+
 ### Leaflet.VectorGrid
 
+* Why do `map.onclick` events trigger "L.DomEvent._fakeStop is not a function" errors?
+
 ### MapLibre GL JS
+
+* What is the necessary (MapLibre GL style) syntax to change a feature's colour when it is clicked on?
+
+* What is the necessary (MapLibre GL style) syntax to scale Point (and MultiPoint) layers based on zoom level? There's code to do this now but I'm not convinced it's doing anything. I may have missed something in the docs.
+
+* What is the best way to account for `onclick` events for multiple, overlapping features?
+
+### Misc
+
+* Is there a simple-and-dumb JavaScript function for dumping a feature's properties to a responsive HTML table in a popup menu? (No frameworks or build tools allowed.)
 
 ## See also
 
@@ -136,5 +150,6 @@ There are still some interaction bugs around click events and popup menus. For e
 * https://www.duckdb.org/
 * https://github.com/marcboeker/go-duckdb
 * https://github.com/Leaflet/Leaflet.VectorGrid
+* https://maplibre.org/maplibre-gl-js/docs/
 * https://github.com/sfomuseum/go-http-mvt
 * https://github.com/sfomuseum/go-www-show
