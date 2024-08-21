@@ -18,6 +18,8 @@ It's like [go-geojson-show](https://github.com/sfomuseum/go-geojson-show) (which
 
 * It is not possible to define different layers for features. Currently all features are assigned to a layer named "all".
 
+* It is not possible to filter the features returned for any given layer. Currently all the feature contained by a (map) tile's extent are returned.
+
 ## Tools
 
 ```
