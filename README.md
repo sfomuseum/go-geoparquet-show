@@ -41,8 +41,12 @@ Valid options are:
     	The URI of the GeoParquet data. Specifically, the value passed to the DuckDB read_parquet() function.
   -database-engine string
     	The database/sql engine (driver) to use. (default "duckdb")
+  -label value
+    	Zero or more (GeoJSON Feature) properties to use to construct a label for a feature's popup menu when it is clicked on.
   -port int
     	The port number to listen for requests on (on localhost). If 0 then a random port number will be chosen.
+  -renderer string
+    	Which rendering library to use to draw vector tiles. Valid options are: leaflet, maplibre. (default "leaflet")
   -verbose
     	Enable vebose (debug) logging.
 ```
@@ -75,6 +79,43 @@ $> ./bin/show \
 The map view is initialized to fit the extent of all the features in the GeoParquet database. Here's another screenshot zoomed in to a smaller section:
 
 ![](docs/images/go-geoparquet-show-zoom.png)
+
+##### Serve a GeoParquet file derived from all the records in the [sfomuseum-data-architecture](https://github.com/sfomuseum-data/sfomuseum-data-architecture) repository using the [MapLibre-GL](https://maplibre.org/maplibre-gl-js) renderer:
+
+![](docs/images/go-geoparquet-show-maplibre-sfo-arch.png)
+
+$> ./bin/show \
+	-data-source /usr/local/data/arch.geoparquet \
+	-label wof:id \
+	-label wof:name \
+	-renderer maplibre
+	
+2024/08/21 13:40:52 INFO Server is ready and features are viewable url=http://localhost:60581
+```
+
+##### Serve a GeoParquet file derived from all the records in the [sfomuseum-data-whosonfirst](https://github.com/sfomuseum-data/sfomuseum-data-whosonfirst) repository using the [MapLibre-GL](https://maplibre.org/maplibre-gl-js) renderer:
+
+![](docs/images/go-geoparquet-show-maplibre-sfo-arch.png)
+
+```
+$> ./bin/show \
+	-data-source /usr/local/data/wof.geoparquet \
+	-label wof:id \
+	-label wof:name \
+	-label wof:placetype
+	-renderer maplibre \
+	-verbose	
+2024/08/21 13:29:16 DEBUG Verbose logging enabled
+2024/08/21 13:29:16 DEBUG Start server
+2024/08/21 13:29:17 DEBUG HEAD request succeeded url=http://localhost:60238
+2024/08/21 13:29:17 INFO Server is ready and features are viewable url=http://localhost:60238
+```
+
+![](docs/images/go-geoparquet-show-maplibre-pkx.png)
+
+There are still some interaction bugs
+
+![](docs/images/go-geoparquet-show-maplibre-jfk.png)
 
 ## See also
 

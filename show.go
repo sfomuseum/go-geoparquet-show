@@ -44,6 +44,10 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 		Renderer:        opts.Renderer,
 	}
 
+	if len(opts.LabelProperties) > 0 && opts.Renderer == "leaflet" {
+		slog.Warn("Rendering label properties in Leaflet maps is currently disabled.")
+	}
+
 	// START OF set up database
 
 	setup := []string{
