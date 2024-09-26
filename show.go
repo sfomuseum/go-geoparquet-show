@@ -68,6 +68,8 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 	// START OF get table defs
 
+	// Update to use https://www.markhneedham.com/blog/2024/09/22/duckdb-dynamic-column-selection/
+
 	q := fmt.Sprintf(`DESCRIBE SELECT * FROM read_parquet("%s")`, opts.Datasource)
 
 	rows, err := opts.Database.QueryContext(ctx, q)
@@ -109,7 +111,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 	// START OF feature(s) extent
 
-	extent_q := fmt.Sprintf(`SELECT MIN(ST_XMin(ST_GeomFromWKB(geometry))) AS minx, MIN(ST_YMin(ST_GeomFromWKB(geometry))) AS miny, MAX(ST_Xmax(ST_GeomFromWKB(geometry))) AS maxx, MAX(ST_YMax(ST_GeomFromWKB(geometry))) AS maxy FROM read_parquet("%s")`, opts.Datasource)
+	extent_q := fmt.Sprintf(`SELECT MIN(ST_XMin(ST_GeomFromWKB(geometry::WKB_BLOB))) AS minx, MIN(ST_YMin(ST_GeomFromWKB(geometry::WKB_BLOB))) AS miny, MAX(ST_Xmax(ST_GeomFromWKB(geometry::WKB_BLOB))) AS maxx, MAX(ST_YMax(ST_GeomFromWKB(geometry::WKB_BLOB))) AS maxy FROM read_parquet("%s")`, opts.Datasource)
 
 	extent_row := opts.Database.QueryRowContext(ctx, extent_q)
 

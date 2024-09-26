@@ -1,6 +1,7 @@
 package show
 
 // https://github.com/victorspringer/http-cache
+// TBD: https://victoriametrics.com/blog/go-singleflight/index.html
 
 import (
 	"context"
@@ -51,7 +52,7 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 
 	for _, c := range table_cols {
 		switch c {
-		case "geometry":
+		case "geometry", "geometry_bbox.xmin", "geometry_bbox.xmax", "geometry_bbox.ymin", "geometry_bbox.ymax":
 			// Note: We are treating the geometry column as a special case
 			// in the SQL query below.
 		default:
@@ -94,16 +95,34 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 		// pointer_cols above.
 
 		q := fmt.Sprintf(`SELECT
-				%s, ST_AsText(ST_GeomFromWkb(geometry)) AS geometry
+				%s, ST_AsText(ST_GeomFromWkb(geometry::WKB_BLOB)) AS geometry
 			  FROM
 				read_parquet("%s")
 			  WHERE
-				ST_Intersects(ST_GeomFromWkb(geometry), ST_GeomFromHEXWKB(?))`,
+				ST_Intersects(ST_GeomFromWkb(geometry::WKB_BLOB), ST_GeomFromHEXWKB(?))`,
 			str_cols, datasource)
 
-		// slog.Debug(q)
+		// I can't seem to make this work (yet)
 
-		rows, err := db.QueryContext(ctx, q, string(enc_poly))
+		// (geometry_bbox.xmin <= ? AND geometry_bbox.xmax >= ? AND geometry_bbox.ymin <= ? AND geometry_bbox.ymax >= ?)
+		// AND
+
+		// xmin := bound.Min[0]
+		// xmax := bound.Min[1]
+		// ymin := bound.Max[0]
+		// ymax := bound.Max[1]
+
+		args := []interface{}{
+			// xmin,
+			// xmax,
+			// ymin,
+			// ymax,
+			string(enc_poly),
+		}
+
+		// slog.Debug("TILE", "query", q, "args", args)
+
+		rows, err := db.QueryContext(ctx, q, args...)
 
 		if err != nil {
 
@@ -161,6 +180,8 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 				// because we indirected all the things (above). Good times.
 
 				switch k {
+				case "geometry_bbox.xmin", "geometry_bbox.xmax", "geometry_bbox.ymin", "geometry_bbox.ymax":
+					// pass
 				case "geometry":
 					wkt_geom = values[idx].(string)
 				default:
