@@ -3,7 +3,7 @@ module github.com/sfomuseum/go-geoparquet-show
 go 1.23.0
 
 require (
-	github.com/marcboeker/go-duckdb v1.7.1
+	github.com/marcboeker/go-duckdb v1.8.1
 	github.com/paulmach/orb v0.11.1
 	github.com/sfomuseum/go-flags v0.10.0
 	github.com/sfomuseum/go-http-mvt v0.0.2
