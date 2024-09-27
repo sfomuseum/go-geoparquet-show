@@ -113,6 +113,7 @@ func GetFeaturesForTileFunc(opts *GetFeaturesForTileFuncOptions) mvt.GetFeatures
 		args := make([]interface{}, 0)
 
 		// START OF bbox constraint
+		// It is not clear to me whether this has any meaningful impact on query times.
 
 		if opts.MaxXColumn != "" && opts.MaxYColumn != "" {
 
@@ -143,7 +144,13 @@ func GetFeaturesForTileFunc(opts *GetFeaturesForTileFuncOptions) mvt.GetFeatures
 		q := fmt.Sprintf(`SELECT %s, ST_AsText(ST_GeomFromWkb(geometry::WKB_BLOB)) AS geometry FROM read_parquet("%s") WHERE %s`,
 			str_cols, opts.Datasource, str_where)
 
-		logger.Debug(q)
+		/*
+			logger.Debug(q)
+
+			for i, a := range args {
+				logger.Debug("arg", "offset", i, "value", a)
+			}
+		*/
 
 		rows, err := opts.Database.QueryContext(ctx, q, args...)
 

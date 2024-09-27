@@ -164,6 +164,10 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 		return err
 	}
 
+	// https://github.com/victorspringer/http-cache/
+	// Initial tests suggest this still has problems
+	// (Whole zoom levels getting dropped for example)
+
 	mux.Handle("/tiles/", mvt_handler)
 
 	// https://github.com/sfomuseum/go-www-show
