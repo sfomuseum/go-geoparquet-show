@@ -143,7 +143,15 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 	// https://github.com/sfomuseum/go-http-mvt
 
-	features_cb := GetFeaturesForTileFunc(opts.Database, opts.Datasource, table_cols)
+	features_opts := &GetFeaturesForTileFuncOptions{
+		Database:     opts.Database,
+		Datasource:   opts.Datasource,
+		TableColumns: table_cols,
+		MaxXColumn:   opts.MaxXColumn,
+		MaxYColumn:   opts.MaxYColumn,
+	}
+
+	features_cb := GetFeaturesForTileFunc(features_opts)
 
 	mvt_opts := &mvt.TileHandlerOptions{
 		GetFeaturesCallback: features_cb,

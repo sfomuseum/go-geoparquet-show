@@ -26,6 +26,10 @@ type RunOptions struct {
 	LabelProperties []string
 	// Which vector tile renderer to use. Valid options are: leaflet, maplibre.
 	Renderer string `json:"renderer"`
+	// An option column name to use for a initial bounding box constraint. This columns is expected to contain the maximum X (longitude) value of the geometry it is associated with.
+	MaxXColumn string
+	// An option column name to use for a initial bounding box constraint. This columns is expected to contain the maximum Y (latitude) value of the geometry it is associated with.
+	MaxYColumn string
 }
 
 // Derive a new `RunOptions` instance from 'fs'.
@@ -53,6 +57,8 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 		Browser:         browser,
 		LabelProperties: label_properties,
 		Renderer:        renderer,
+		MaxXColumn:      max_x_column,
+		MaxYColumn:      max_y_column,
 	}
 
 	return opts, nil
