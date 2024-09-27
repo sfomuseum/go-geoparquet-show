@@ -17,6 +17,9 @@ var renderer string
 
 var label_properties multi.MultiString
 
+var max_x_column string
+var max_y_column string
+
 var verbose bool
 
 func DefaultFlagSet() *flag.FlagSet {
@@ -29,6 +32,9 @@ func DefaultFlagSet() *flag.FlagSet {
 
 	fs.StringVar(&renderer, "renderer", "leaflet", "Which rendering library to use to draw vector tiles. Valid options are: leaflet, maplibre.")
 	fs.Var(&label_properties, "label", "Zero or more (GeoJSON Feature) properties to use to construct a label for a feature's popup menu when it is clicked on.")
+
+	fs.StringVar(&max_x_column, "max-x-column", "", "An option column name to use for a initial bounding box constraint. This columns is expected to contain the maximum X (longitude) value of the geometry it is associated with. This will only work if the -max-y-column flag is also set.")
+	fs.StringVar(&max_y_column, "max-y-column", "", "An option column name to use for a initial bounding box constraint. This columns is expected to contain the maximum Y (latitude) value of the geometry it is associated with. This will only work if the -max-x-column flag is also set.")
 
 	fs.BoolVar(&verbose, "verbose", false, "Enable vebose (debug) logging.")
 

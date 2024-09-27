@@ -35,9 +35,23 @@ func replaceMultiPoint(s string) string {
 
 // END OF The DuckDB spatial extension returns WKT-formatted MultiPoint strings
 
-// GetFeaturesForTileFunc returns a `mvt.GetFeaturesCallbackFunc` callback function using 'db' and 'database' to yield
+// GetFeaturesForTileFuncOptions defines configuration details to pass the `GetFeaturesForTileFunc` method.
+type GetFeaturesForTileFuncOptions struct {
+	// A valid `sql.DB` instance (assumed for the time being to be using the "duckdb" engine).
+	Database *sql.DB
+	// A valid URI to a GeoParquet file to pass to the DuckDB `read_parquet` method.
+	Datasource string
+	// The list of table columns to query for and assign as GeoJSON properties.
+	TableColumns []string
+	// An option column name to use for a initial bounding box constraint. This columns is expected to contain the maximum X (longitude) value of the geometry it is associated with.
+	MaxXColumn string
+	// An option column name to use for a initial bounding box constraint. This columns is expected to contain the maximum Y (latitude) value of the geometry it is associated with.
+	MaxYColumn string
+}
+
+// GetFeaturesForTileFunc returns a `mvt.GetFeaturesCallbackFunc` callback function using details specified in 'opts' to yield
 // a dictionary of GeoJSON FeatureCollections instances.
-func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) mvt.GetFeaturesCallbackFunc {
+func GetFeaturesForTileFunc(opts *GetFeaturesForTileFuncOptions) mvt.GetFeaturesCallbackFunc { // db *sql.DB, datasource string, table_cols []string) mvt.GetFeaturesCallbackFunc {
 
 	// quoted_cols wraps each column name in double-quotes
 	quoted_cols := make([]string, 0)
@@ -49,7 +63,7 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 	// in to variables.
 	pointer_cols := make([]string, 0)
 
-	for _, c := range table_cols {
+	for _, c := range opts.TableColumns {
 		switch c {
 		case "geometry":
 			// Note: We are treating the geometry column as a special case
@@ -69,9 +83,11 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 
 	fn := func(ctx context.Context, layer string, t *maptile.Tile) (map[string]*geojson.FeatureCollection, error) {
 
+		tile_key := fmt.Sprintf("%d/%d/%d", t.Z, t.X, t.Y)
+
 		logger := slog.Default()
 		logger = logger.With("layer", layer)
-		// logger = logger.With("tile", t)
+		logger = logger.With("tile", tile_key)
 
 		fc := geojson.NewFeatureCollection()
 
@@ -93,17 +109,50 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 		// Note: Do not change the order of columns here (geometry at the end) without adjusting
 		// pointer_cols above.
 
-		q := fmt.Sprintf(`SELECT
-				%s, ST_AsText(ST_GeomFromWkb(geometry)) AS geometry
-			  FROM
-				read_parquet("%s")
-			  WHERE
-				ST_Intersects(ST_GeomFromWkb(geometry), ST_GeomFromHEXWKB(?))`,
-			str_cols, datasource)
+		where := make([]string, 0)
+		args := make([]interface{}, 0)
 
-		// slog.Debug(q)
+		// START OF bbox constraint
+		// It is not clear to me whether this has any meaningful impact on query times.
 
-		rows, err := db.QueryContext(ctx, q, string(enc_poly))
+		if opts.MaxXColumn != "" && opts.MaxYColumn != "" {
+
+			max_lon := opts.MaxXColumn
+			max_lat := opts.MaxYColumn
+
+			minx := bound.Min[0]
+			miny := bound.Min[1]
+			maxx := bound.Max[0]
+			maxy := bound.Max[1]
+
+			where_bbox := fmt.Sprintf(`(("%s" > ? AND "%s" < ?) OR ("%s" > ? AND "%s" < ?))`, max_lon, max_lon, max_lat, max_lat)
+			where = append(where, where_bbox)
+
+			args = append(args, minx)
+			args = append(args, maxy)
+			args = append(args, miny)
+			args = append(args, maxx)
+		}
+
+		// END OF bbox constraint
+
+		where = append(where, `ST_Intersects(ST_GeomFromWkb(geometry::WKB_BLOB), ST_GeomFromHEXWKB(?))`)
+		args = append(args, string(enc_poly))
+
+		str_where := strings.Join(where, " AND ")
+
+		q := fmt.Sprintf(`SELECT %s, ST_AsText(ST_GeomFromWkb(geometry::WKB_BLOB)) AS geometry FROM read_parquet("%s") WHERE %s`,
+			str_cols, opts.Datasource, str_where)
+
+		/*
+			logger.Debug(q)
+
+			for i, a := range args {
+				logger.Debug("arg", "offset", i, "value", a)
+			}
+		*/
+
+		rows, err := opts.Database.QueryContext(ctx, q, args...)
 
 		if err != nil {
 
@@ -111,7 +160,7 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 				return nil, nil
 			}
 
-			slog.Error("Failed to query database", "error", err, "query", q, "geom", enc_poly)
+			logger.Error("Failed to query database", "error", err, "query", q, "geom", enc_poly)
 			return nil, fmt.Errorf("Failed to query database, %w", err)
 		}
 
@@ -147,7 +196,7 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 					break
 				}
 
-				slog.Error("Failed to scan row", "error", err)
+				logger.Error("Failed to scan row", "error", err)
 				return nil, fmt.Errorf("Failed to scan row, %w", err)
 			}
 

@@ -43,6 +43,10 @@ Valid options are:
     	The database/sql engine (driver) to use. (default "duckdb")
   -label value
     	Zero or more (GeoJSON Feature) properties to use to construct a label for a feature's popup menu when it is clicked on.
+  -max-x-column string
+    	An option column name to use for a initial bounding box constraint. This columns is expected to contain the maximum X (longitude) value of the geometry it is associated with. This will only work if the -max-y-column flag is also set.
+  -max-y-column string
+    	An option column name to use for a initial bounding box constraint. This columns is expected to contain the maximum Y (latitude) value of the geometry it is associated with. This will only work if the -max-x-column flag is also set.
   -port int
     	The port number to listen for requests on (on localhost). If 0 then a random port number will be chosen.
   -renderer string

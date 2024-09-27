@@ -68,6 +68,8 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 	// START OF get table defs
 
+	// Update to use https://www.markhneedham.com/blog/2024/09/22/duckdb-dynamic-column-selection/
+
 	q := fmt.Sprintf(`DESCRIBE SELECT * FROM read_parquet("%s")`, opts.Datasource)
 
 	rows, err := opts.Database.QueryContext(ctx, q)
@@ -109,7 +111,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 	// START OF feature(s) extent
 
-	extent_q := fmt.Sprintf(`SELECT MIN(ST_XMin(ST_GeomFromWKB(geometry))) AS minx, MIN(ST_YMin(ST_GeomFromWKB(geometry))) AS miny, MAX(ST_Xmax(ST_GeomFromWKB(geometry))) AS maxx, MAX(ST_YMax(ST_GeomFromWKB(geometry))) AS maxy FROM read_parquet("%s")`, opts.Datasource)
+	extent_q := fmt.Sprintf(`SELECT MIN(ST_XMin(ST_GeomFromWKB(geometry::WKB_BLOB))) AS minx, MIN(ST_YMin(ST_GeomFromWKB(geometry::WKB_BLOB))) AS miny, MAX(ST_Xmax(ST_GeomFromWKB(geometry::WKB_BLOB))) AS maxx, MAX(ST_YMax(ST_GeomFromWKB(geometry::WKB_BLOB))) AS maxy FROM read_parquet("%s")`, opts.Datasource)
 
 	extent_row := opts.Database.QueryRowContext(ctx, extent_q)
 
@@ -141,7 +143,15 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 
 	// https://github.com/sfomuseum/go-http-mvt
 
-	features_cb := GetFeaturesForTileFunc(opts.Database, opts.Datasource, table_cols)
+	features_opts := &GetFeaturesForTileFuncOptions{
+		Database:     opts.Database,
+		Datasource:   opts.Datasource,
+		TableColumns: table_cols,
+		MaxXColumn:   opts.MaxXColumn,
+		MaxYColumn:   opts.MaxYColumn,
+	}
+
+	features_cb := GetFeaturesForTileFunc(features_opts)
 
 	mvt_opts := &mvt.TileHandlerOptions{
 		GetFeaturesCallback: features_cb,
@@ -153,6 +163,10 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 	if err != nil {
 		return err
 	}
+
+	// https://github.com/victorspringer/http-cache/
+	// Initial tests suggest this still has problems
+	// (Whole zoom levels getting dropped for example)
 
 	mux.Handle("/tiles/", mvt_handler)
 
