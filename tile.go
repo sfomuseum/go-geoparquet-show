@@ -1,7 +1,6 @@
 package show
 
 // https://github.com/victorspringer/http-cache
-// TBD: https://victoriametrics.com/blog/go-singleflight/index.html
 
 import (
 	"context"
@@ -70,9 +69,11 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 
 	fn := func(ctx context.Context, layer string, t *maptile.Tile) (map[string]*geojson.FeatureCollection, error) {
 
+		tile_key := fmt.Sprintf("%d/%d/%d", t.Z, t.X, t.Y)
+
 		logger := slog.Default()
 		logger = logger.With("layer", layer)
-		// logger = logger.With("tile", t)
+		logger = logger.With("tile", tile_key)
 
 		fc := geojson.NewFeatureCollection()
 
@@ -84,6 +85,11 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 
 		bound := t.Bound()
 		poly := bound.ToPolygon()
+
+		logger = logger.With("minx", bound.Min[0])
+		logger = logger.With("miny", bound.Min[1])
+		logger = logger.With("maxx", bound.Max[0])
+		logger = logger.With("maxy", bound.Max[1])
 
 		enc_poly, err := wkb.MarshalToHex(poly, wkb.DefaultByteOrder)
 
@@ -98,29 +104,13 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 				%s, ST_AsText(ST_GeomFromWkb(geometry::WKB_BLOB)) AS geometry
 			  FROM
 				read_parquet("%s")
-			  WHERE
+                          WHERE
 				ST_Intersects(ST_GeomFromWkb(geometry::WKB_BLOB), ST_GeomFromHEXWKB(?))`,
 			str_cols, datasource)
 
-		// I can't seem to make this work (yet)
-
-		// (geometry_bbox.xmin <= ? AND geometry_bbox.xmax >= ? AND geometry_bbox.ymin <= ? AND geometry_bbox.ymax >= ?)
-		// AND
-
-		// xmin := bound.Min[0]
-		// xmax := bound.Min[1]
-		// ymin := bound.Max[0]
-		// ymax := bound.Max[1]
-
 		args := []interface{}{
-			// xmin,
-			// xmax,
-			// ymin,
-			// ymax,
 			string(enc_poly),
 		}
-
-		// slog.Debug("TILE", "query", q, "args", args)
 
 		rows, err := db.QueryContext(ctx, q, args...)
 
@@ -130,7 +120,7 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 				return nil, nil
 			}
 
-			slog.Error("Failed to query database", "error", err, "query", q, "geom", enc_poly)
+			logger.Error("Failed to query database", "error", err, "query", q, "geom", enc_poly)
 			return nil, fmt.Errorf("Failed to query database, %w", err)
 		}
 
@@ -166,7 +156,7 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 					break
 				}
 
-				slog.Error("Failed to scan row", "error", err)
+				logger.Error("Failed to scan row", "error", err)
 				return nil, fmt.Errorf("Failed to scan row, %w", err)
 			}
 
@@ -180,8 +170,6 @@ func GetFeaturesForTileFunc(db *sql.DB, datasource string, table_cols []string) 
 				// because we indirected all the things (above). Good times.
 
 				switch k {
-				case "geometry_bbox.xmin", "geometry_bbox.xmax", "geometry_bbox.ymin", "geometry_bbox.ymax":
-					// pass
 				case "geometry":
 					wkt_geom = values[idx].(string)
 				default:
