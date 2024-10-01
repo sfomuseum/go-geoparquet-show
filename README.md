@@ -37,6 +37,8 @@ Command-line tool for serving GeoParquet features as vector tiles from an on-dem
 Usage:
 	 ./bin/show [options]
 Valid options are:
+  -browser-uri string
+    	A valid sfomuseum/go-www-show/v2.Browser URI. Valid options are: web:// (default "web://")
   -data-source string
     	The URI of the GeoParquet data. Specifically, the value passed to the DuckDB read_parquet() function.
   -database-engine string
