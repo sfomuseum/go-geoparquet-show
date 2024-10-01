@@ -4,14 +4,18 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/sfomuseum/go-flags/flagset"
 	"github.com/sfomuseum/go-flags/multi"
+	"github.com/sfomuseum/go-www-show/v2"
 )
 
 var data_source string
 var db_engine string
 var port int
+
+var browser_uri string
 
 var renderer string
 
@@ -25,6 +29,13 @@ var verbose bool
 func DefaultFlagSet() *flag.FlagSet {
 
 	fs := flagset.NewFlagSet("show")
+
+	browser_schemes := show.BrowserSchemes()
+	str_schemes := strings.Join(browser_schemes, ",")
+
+	browser_desc := fmt.Sprintf("A valid sfomuseum/go-www-show/v2.Browser URI. Valid options are: %s", str_schemes)
+
+	fs.StringVar(&browser_uri, "browser-uri", "web://", browser_desc)
 
 	fs.IntVar(&port, "port", 0, "The port number to listen for requests on (on localhost). If 0 then a random port number will be chosen.")
 	fs.StringVar(&data_source, "data-source", "", "The URI of the GeoParquet data. Specifically, the value passed to the DuckDB read_parquet() function.")

@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/sfomuseum/go-flags/flagset"
-	www_show "github.com/sfomuseum/go-www-show"
+	www_show "github.com/sfomuseum/go-www-show/v2"
 )
 
 // RunOptions defines options for configuring and starting a local web server to serve GeoParquet data as vector tiles.
@@ -43,7 +43,7 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 		return nil, fmt.Errorf("Failed to open database, %w", err)
 	}
 
-	browser, err := www_show.NewBrowser(ctx, "web://")
+	browser, err := www_show.NewBrowser(ctx, browser_uri)
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create new browser, %w", err)

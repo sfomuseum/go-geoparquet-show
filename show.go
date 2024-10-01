@@ -10,7 +10,7 @@ import (
 
 	"github.com/sfomuseum/go-geoparquet-show/static/www"
 	"github.com/sfomuseum/go-http-mvt"
-	www_show "github.com/sfomuseum/go-www-show"
+	www_show "github.com/sfomuseum/go-www-show/v2"
 )
 
 // Run with launch a web server and browser serving GeoParquet data as vector tiles using the default flag set.
