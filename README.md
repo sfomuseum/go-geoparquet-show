@@ -29,6 +29,12 @@ go build -mod vendor -ldflags="-s -w" -o bin/show cmd/show/main.go
 
 _If you encounter problems building the tools it might have something to do with the way `go-duckdb` is vendored. The best place to start debugging things is [this section in the go-duckdb documentation](https://github.com/marcboeker/go-duckdb?tab=readme-ov-file#vendoring)._
 
+To enable use the [WebViewBrowser `Browser` implementation](https://github.com/sfomuseum/go-www-show?tab=readme-ov-file#webviewbrowser-webview) tools will need to be build with the `webview` tag set. For example:
+
+```
+$> go build -mod vendor -ldflags="-s -w" -tags webview -o bin/show cmd/show/main.go
+```
+
 ### show
 
 ```
