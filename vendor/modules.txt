@@ -96,9 +96,16 @@ github.com/sfomuseum/go-flags/multi
 # github.com/sfomuseum/go-http-mvt v0.0.2
 ## explicit; go 1.23.0
 github.com/sfomuseum/go-http-mvt
-# github.com/sfomuseum/go-www-show v1.0.0
+# github.com/sfomuseum/go-www-show/v2 v2.0.0
 ## explicit; go 1.23.0
-github.com/sfomuseum/go-www-show
+github.com/sfomuseum/go-www-show/v2
+# github.com/webview/webview_go v0.0.0-20240831120633-6173450d4dd6
+## explicit; go 1.13
+github.com/webview/webview_go
+github.com/webview/webview_go/libs/mswebview2
+github.com/webview/webview_go/libs/mswebview2/include
+github.com/webview/webview_go/libs/webview
+github.com/webview/webview_go/libs/webview/include
 # github.com/zeebo/xxh3 v1.0.2
 ## explicit; go 1.17
 github.com/zeebo/xxh3

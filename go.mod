@@ -7,7 +7,7 @@ require (
 	github.com/paulmach/orb v0.11.1
 	github.com/sfomuseum/go-flags v0.10.0
 	github.com/sfomuseum/go-http-mvt v0.0.2
-	github.com/sfomuseum/go-www-show v1.0.0
+	github.com/sfomuseum/go-www-show/v2 v2.0.0
 )
 
 require (
@@ -22,6 +22,7 @@ require (
 	github.com/paulmach/protoscan v0.2.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
+	github.com/webview/webview_go v0.0.0-20240831120633-6173450d4dd6 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.mongodb.org/mongo-driver v1.11.4 // indirect
 	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225 // indirect

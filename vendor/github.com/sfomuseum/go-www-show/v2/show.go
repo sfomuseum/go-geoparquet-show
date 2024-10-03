@@ -113,7 +113,20 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 		}
 	}
 
-	err := opts.Browser.OpenURL(ctx, url)
+	browser_ch := make(chan bool)
+
+	go func() {
+
+		for {
+			select {
+			case <-browser_ch:
+				done_ch <- true
+				return
+			}
+		}
+	}()
+
+	err := opts.Browser.OpenURL(ctx, url, browser_ch)
 
 	if err != nil {
 		return fmt.Errorf("Failed to open URL %s, %w", url, err)

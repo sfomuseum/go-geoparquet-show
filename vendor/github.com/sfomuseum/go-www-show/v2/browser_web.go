@@ -29,6 +29,6 @@ func NewWebBrowser(ctx context.Context, uri string) (Browser, error) {
 }
 
 // OpenURL opens 'url' in the operating system's default web browser.
-func (br *WebBrowser) OpenURL(ctx context.Context, url string) error {
+func (br *WebBrowser) OpenURL(ctx context.Context, url string, done_ch chan bool) error {
 	return browser.OpenURL(url)
 }

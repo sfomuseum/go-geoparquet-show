@@ -12,8 +12,10 @@ import (
 
 // Browser is an interface for rendering URLs.
 type Browser interface {
-	// OpenURL opens a given in a URL specific to the browser's implementation context.
-	OpenURL(context.Context, string) error
+	// OpenURL opens a given in a URL specific to the browser's implementation context. The method expects
+	// a URL to open and a channel that can be used (optionally) to signal when the specific `Browser`
+	// implementation exits or otherwise triggers a "completed" state.
+	OpenURL(context.Context, string, chan bool) error
 }
 
 var browser_roster roster.Roster
