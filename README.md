@@ -6,6 +6,8 @@ Command-line tool for serving GeoParquet data as vector tiles from an on-demand 
 
 It's like [go-geojson-show](https://github.com/sfomuseum/go-geojson-show) (which is itself meant to be a simpler and dumber version of [geojson.io](https://geojson.io)) but for GeoParquet files. Specifically, a simple binary application for serving GeoParquet data as vector tiles from an on-demand web server.
 
+Have a look at the [Small focused tools for visualizing geographic data](https://millsfield.sfomuseum.org/blog/2024/10/02/show/) blog post for more background.
+
 ## Important
 
 * This is an early-stage project. There may still be bugs (or just bad decisions).
