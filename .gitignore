@@ -1,4 +1,6 @@
 go.work*
 bin
 *~
+vendor
 libduckdb.a
+libduckdb_static.a
