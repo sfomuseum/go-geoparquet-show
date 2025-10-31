@@ -12,7 +12,7 @@ Have a look at the [Small focused tools for visualizing geographic data](https:/
 
 * This is an early-stage project. There may still be bugs (or just bad decisions).
 
-* It works reasonably well for small GeoParquet files. It is _very slow_ for large GeoParquet files. Under the hood it is using [DuckDB](https://www.duckdb.org/), and more specifically the [go-duckdb](https://github.com/marcboeker/go-duckdb) package, to query GeoParquet files. Maybe I am just "doing it wrong"? 
+* It works reasonably well for small GeoParquet files. It is _very slow_ for large GeoParquet files. Under the hood it is using [DuckDB](https://www.duckdb.org/), and more specifically the [go-duckdb](https://github.com/duckdb/go-duckdb) package, to query GeoParquet files. Maybe I am just "doing it wrong"? 
 
 * There are no interactive features for the Leaflet-based renderer yet. The code is using the [Leaflet/Leaflet.VectorGrid](https://github.com/Leaflet/Leaflet.VectorGrid) package to render tiles but all the map `onclick` events trigger "L.DomEvent._fakeStop is not a function" errors which I haven't figured out yet. Any help or pointers would be appreciated. If you want or need interactive popups please use the "maplibre" renderer.
 
@@ -26,16 +26,16 @@ Have a look at the [Small focused tools for visualizing geographic data](https:/
 
 ```
 $> make cli
-go build -mod vendor -ldflags="-s -w" -o bin/show cmd/show/main.go
+go build -ldflags="-s -w" -o bin/show cmd/show/main.go
 ```
-
-_If you encounter problems building the tools it might have something to do with the way `go-duckdb` is vendored. The best place to start debugging things is [this section in the go-duckdb documentation](https://github.com/marcboeker/go-duckdb?tab=readme-ov-file#vendoring)._
 
 To enable use the [WebViewBrowser `Browser` implementation](https://github.com/sfomuseum/go-www-show?tab=readme-ov-file#webviewbrowser-webview) tools will need to be build with the `webview` tag set. For example:
 
 ```
 $> go build -mod vendor -ldflags="-s -w" -tags webview -o bin/show cmd/show/main.go
 ```
+
+Note: This package does NOT vendor dependencies. It's just too fussy trying to wrangle the thing where `duckdb/go-duckdb` bundles multiple instances of `libduckdb_static.a` which are really big and make GitHub sad.
 
 ### show
 
